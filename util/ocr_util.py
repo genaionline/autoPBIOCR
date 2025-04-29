@@ -1,8 +1,16 @@
 import pytesseract
 from pdf2image import convert_from_path
 import os
+import configparser
 
 class UtilOCR:
+    @staticmethod
+    def get_config():
+        config = configparser.ConfigParser()
+        config_path = os.path.join(os.path.dirname(__file__), '../config/config.ini')
+        config.read(config_path)
+        return config
+
     @staticmethod
     def extract_text(pdf_file: str, custom_type: str = None) -> str:
         """

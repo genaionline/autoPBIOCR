@@ -1,36 +1,45 @@
 import configparser
-from powerbiclient import (
-    Report,
-    models,
-    PowerBIClient,
-    Authentication,
-    Uri,
-)
-from powerbiclient.auth import DeviceCodeAuth
+import os
+from powerbiclient.authentication import DeviceCodeLoginAuthentication
+from powerbiclient import Report, models
+
 
 class UtilPBI:
     def __init__(self):
         self.config = configparser.ConfigParser()
-        self.config.read('config/config.ini')
+        config_path = os.path.join(os.path.dirname(__file__), '../config/config.ini')
+        self.config.read(config_path)
+        self.client = None
 
     @staticmethod
     def connect_pbi():
+        # Refer to this: https://github.com/microsoft/powerbi-jupyter/blob/main/demo/Embed%20Power%20BI%20report%20demo.ipynb
+        
         config = configparser.ConfigParser()
-        config.read('config/config.ini')
+        config_path = os.path.join(os.path.dirname(__file__), '../config/config.ini')
+        config.read(config_path)
         try:
             link = config.get('PowerBI', 'link')
-            # Simulate connection logic
-            if not link or link == '<your_power_bi_link_here>':
+            if not link:
                 raise ValueError("Invalid Power BI link.")
             print(f"Connected to Power BI using link: {link}")
 
-            # Initialize the Power BI client
-            pbi_client = PowerBIClient(authentication=Authentication(DeviceCodeAuth()))
-            # Authenticate using device code flow
-            # A browser window will open, and you will be asked to sign in to Power BI
-            pbi_client.auth.authenticate()
+            device_auth = DeviceCodeLoginAuthentication()
+            
+            group_id = "e5122c64-1bae-4c59-85ce-35484f92f8df"
+            report_id = "2f91863f-3a73-4edf-b74b-f011f0debd4e"
+
+            report = Report(group_id=group_id, report_id=report_id, auth=device_auth)
+
+            if report is not None:
+                print("Authentication successful")
+            else:
+                print(f"Authentication failed.")
+                return None
+
         except Exception as e:
             print(f"Error connecting to Power BI: {e}")
+            return None
 
     @staticmethod
     def export_to_pdf(pdf_file, filters):
@@ -62,10 +71,12 @@ class UtilPBI:
 
         #refer to this link for more details
         #https://learn.microsoft.com/en-us/rest/api/power-bi/reports/export-to-file
+        #https://learn.microsoft.com/en-us/power-bi/collaborate-share/service-url-filters
+        
         
 
 
 if __name__ == "__main__":
     UtilPBI.connect_pbi()
-    UtilPBI.export_to_pdf("output.pdf", {"filter_key": "filter_value"}) 
+    #UtilPBI.export_to_pdf("output.pdf", {"filter_key": "filter_value"}) 
 
